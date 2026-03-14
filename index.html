@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExplainToPDF</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>ExplainToPDF – Convert Topics into Explained Study PDFs</h1>
+        <p class="subtitle">
+          Upload an image or paste topic text, generate a structured ChatGPT prompt, then turn the AI
+          explanation into a downloadable PDF.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Input Area</h2>
+
+        <label for="imageInput" class="label">Upload Image</label>
+        <input id="imageInput" type="file" accept="image/png, image/jpg, image/jpeg" />
+
+        <div class="divider">Or</div>
+
+        <label for="directText" class="label">Or paste text here</label>
+        <textarea
+          id="directText"
+          class="large-textarea"
+          placeholder="Paste your topic text here..."
+        ></textarea>
+
+        <div id="ocrLoader" class="loader hidden" role="status" aria-live="polite">
+          Scanning image and extracting text...
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Detected Topic Text</h2>
+        <textarea
+          id="detectedText"
+          class="large-textarea"
+          placeholder="Detected or pasted topic text will appear here..."
+        ></textarea>
+        <button id="generatePromptBtn" class="btn primary">Generate AI Prompt</button>
+      </section>
+
+      <section class="card">
+        <h2>Prompt Generator</h2>
+        <textarea
+          id="promptOutput"
+          class="large-textarea"
+          placeholder="Generated prompt will appear here..."
+        ></textarea>
+
+        <div class="button-row">
+          <button id="copyPromptBtn" class="btn">Copy Prompt</button>
+          <button id="openChatGptBtn" class="btn">Open ChatGPT</button>
+        </div>
+
+        <p id="copyNotice" class="notice hidden" aria-live="polite">Prompt copied to clipboard.</p>
+      </section>
+
+      <section class="card">
+        <h2>Paste the ChatGPT Response Here</h2>
+        <textarea
+          id="aiResponse"
+          class="large-textarea"
+          placeholder="Paste the ChatGPT explanation here..."
+        ></textarea>
+      </section>
+
+      <section class="card">
+        <h2>PDF Generator</h2>
+        <button id="generatePdfBtn" class="btn primary">Generate PDF</button>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
