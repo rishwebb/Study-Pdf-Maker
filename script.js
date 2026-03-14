@@ -11,7 +11,11 @@ const openChatGptBtn = document.getElementById("openChatGptBtn");
 const generatePdfBtn = document.getElementById("generatePdfBtn");
 
 // Prompt skeleton used for ChatGPT.
-const PROMPT_TEMPLATE = `Explain the following topic in a detailed and structured way.
+const PROMPT_TEMPLATE = `Explain the following study material in a detailed and structured way.
+
+If the content contains multiple pages, read all pages together as one continuous topic before answering.
+Do not explain each page separately unless the content clearly requires it.
+If OCR includes duplicate fragments or small scanning errors, ignore them and keep the explanation coherent.
 
 Structure the response with clear headings:
 Introduction
@@ -26,13 +30,15 @@ Do not use markdown symbols such as #, *, **, or backticks.
 Do not use emojis or unusual characters.
 Use clean headings and paragraphs suitable for PDF.
 
-Topic:
+Study material:
 {{TOPIC_TEXT}}`;
 
 let noticeTimeoutId;
+const DEFAULT_LOADER_TEXT = "Scanning uploaded pages and extracting text...";
 
 // UI helpers.
-function showLoader(isVisible) {
+function showLoader(isVisible, message = DEFAULT_LOADER_TEXT) {
+  ocrLoader.textContent = message;
   ocrLoader.classList.toggle("hidden", !isVisible);
 }
 
@@ -53,20 +59,63 @@ function updateDetectedFromDirectText() {
 }
 
 // OCR: extract topic text from uploaded image in-browser.
-async function extractTextFromImage(file) {
+function buildCombinedOcrText(pageTexts) {
+  if (pageTexts.length === 1) {
+    return pageTexts[0].text;
+  }
+
+  return pageTexts
+    .map(({ pageNumber, text }) => `Page ${pageNumber}\n${text}`)
+    .join("\n\n");
+}
+
+async function extractTextFromImages(files) {
+  const selectedFiles = Array.from(files);
+
+  if (selectedFiles.length === 0) {
+    return;
+  }
+
   showLoader(true);
 
   try {
-    const {
-      data: { text }
-    } = await Tesseract.recognize(file, "eng", {
-      logger: () => {}
-    });
+    const pageTexts = [];
 
-    detectedText.value = text.trim();
+    for (const [index, file] of selectedFiles.entries()) {
+      const pageNumber = index + 1;
+      const loadingMessage =
+        selectedFiles.length === 1
+          ? "Scanning uploaded page and extracting text..."
+          : `Scanning page ${pageNumber} of ${selectedFiles.length} and extracting text...`;
+
+      showLoader(true, loadingMessage);
+
+      const {
+        data: { text }
+      } = await Tesseract.recognize(file, "eng", {
+        logger: () => {}
+      });
+
+      const trimmedText = text.trim();
+
+      if (trimmedText) {
+        pageTexts.push({
+          pageNumber,
+          text: trimmedText
+        });
+      }
+    }
+
+    if (pageTexts.length === 0) {
+      alert("No readable text was found in the selected image files.");
+      detectedText.value = "";
+      return;
+    }
+
+    detectedText.value = buildCombinedOcrText(pageTexts);
     directText.value = "";
   } catch (error) {
-    alert("OCR failed. Please try a different image or paste text manually.");
+    alert("OCR failed. Please try different image files or paste text manually.");
     console.error(error);
   } finally {
     showLoader(false);
@@ -211,13 +260,13 @@ function generatePdf() {
 
 // Event wiring.
 imageInput.addEventListener("change", (event) => {
-  const file = event.target.files?.[0];
+  const files = event.target.files;
 
-  if (!file) {
+  if (!files?.length) {
     return;
   }
 
-  extractTextFromImage(file);
+  extractTextFromImages(files);
 });
 
 directText.addEventListener("input", updateDetectedFromDirectText);

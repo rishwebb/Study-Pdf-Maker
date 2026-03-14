@@ -11,16 +11,22 @@
       <section class="card">
         <h1>ExplainToPDF – Convert Topics into Explained Study PDFs</h1>
         <p class="subtitle">
-          Upload an image or paste topic text, generate a structured ChatGPT prompt, then turn the AI
-          explanation into a downloadable PDF.
+          Upload one or more page images or paste topic text, generate a structured ChatGPT prompt,
+          then turn the AI explanation into a downloadable PDF.
         </p>
       </section>
 
       <section class="card">
         <h2>Input Area</h2>
 
-        <label for="imageInput" class="label">Upload Image</label>
-        <input id="imageInput" type="file" accept="image/png, image/jpg, image/jpeg" />
+        <label for="imageInput" class="label">Upload Image Pages</label>
+        <input
+          id="imageInput"
+          type="file"
+          accept="image/png, image/jpg, image/jpeg"
+          multiple
+        />
+        <p class="input-hint">Select one or more page images. They will be merged into one prompt.</p>
 
         <div class="divider">Or</div>
 
@@ -32,7 +38,7 @@
         ></textarea>
 
         <div id="ocrLoader" class="loader hidden" role="status" aria-live="polite">
-          Scanning image and extracting text...
+          Scanning uploaded pages and extracting text...
         </div>
       </section>
 
