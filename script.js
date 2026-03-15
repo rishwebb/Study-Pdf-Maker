@@ -45,6 +45,7 @@ const DEFAULT_LOADER_TEXT = "Scanning uploaded pages and extracting text...";
 const APP_STATE_STORAGE_KEY = "explainToPdfStateV1";
 const savedResponses = [];
 let editingResponseIndex = null;
+let isOpeningChatGpt = false;
 
 function showLoader(isVisible, message = DEFAULT_LOADER_TEXT) {
   ocrLoader.textContent = message;
@@ -203,7 +204,16 @@ async function copyPrompt() {
 }
 
 function openChatGPT() {
-  window.open("https://chatgpt.com", "_blank", "noopener,noreferrer");
+  if (isOpeningChatGpt) {
+    return;
+  }
+
+  isOpeningChatGpt = true;
+  window.location.assign("https://chatgpt.com");
+
+  setTimeout(() => {
+    isOpeningChatGpt = false;
+  }, 1500);
 }
 
 function closeMenu() {
