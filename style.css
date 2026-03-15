@@ -220,6 +220,20 @@ input[type="file"]:focus,
   flex-wrap: wrap;
 }
 
+/* Ensure the Open ChatGPT anchor's label is perfectly centered */
+#openChatGptBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+#openChatGptBtn:hover {
+  text-decoration: none;
+}
+
 .response-actions {
   margin-bottom: 14px;
 }
