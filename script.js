@@ -11,11 +11,13 @@ const openChatGptBtn = document.getElementById("openChatGptBtn");
 const generatePdfBtn = document.getElementById("generatePdfBtn");
 
 // Prompt skeleton used for ChatGPT.
-const PROMPT_TEMPLATE = `Explain the following study material in a detailed and structured way.
+const PROMPT_TEMPLATE = `Explain the following study material in a very detailed, structured, and easy-to-understand way.
 
 If the content contains multiple pages, read all pages together as one continuous topic before answering.
 Do not explain each page separately unless the content clearly requires it.
 If OCR includes duplicate fragments or small scanning errors, ignore them and keep the explanation coherent.
+Write the answer in Canvas.
+Make the answer more detailed by fully explaining concepts, definitions, processes, and important points without skipping intermediate steps.
 
 Structure the response with clear headings:
 Introduction
@@ -29,6 +31,7 @@ Use plain readable text only.
 Do not use markdown symbols such as #, *, **, or backticks.
 Do not use emojis or unusual characters.
 Use clean headings and paragraphs suitable for PDF.
+Use longer, richer explanations in each section so the material is useful for deep study and revision.
 
 Study material:
 {{TOPIC_TEXT}}`;
