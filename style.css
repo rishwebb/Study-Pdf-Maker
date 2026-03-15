@@ -28,6 +28,53 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.top-menu {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 30;
+}
+
+.menu-toggle {
+  min-height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 142px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.menu-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: #f6f8fe;
+}
+
 .container {
   width: min(980px, 92%);
   margin: 20px auto 44px;
@@ -142,6 +189,58 @@ input[type="file"]:focus,
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.response-actions {
+  margin-bottom: 14px;
+}
+
+.saved-responses-list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-response-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.saved-response-text {
+  color: var(--text);
+  font-size: 0.94rem;
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-response-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.icon-btn {
+  min-height: 34px;
+  min-width: 34px;
+  padding: 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: currentColor;
 }
 
 .btn {

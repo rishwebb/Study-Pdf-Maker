@@ -3,6 +3,11 @@ const directText = document.getElementById("directText");
 const detectedText = document.getElementById("detectedText");
 const promptOutput = document.getElementById("promptOutput");
 const aiResponse = document.getElementById("aiResponse");
+const saveResponseBtn = document.getElementById("saveResponseBtn");
+const savedResponsesList = document.getElementById("savedResponsesList");
+const menuToggleBtn = document.getElementById("menuToggleBtn");
+const menuDropdown = document.getElementById("menuDropdown");
+const resetAllBtn = document.getElementById("resetAllBtn");
 const ocrLoader = document.getElementById("ocrLoader");
 const copyNotice = document.getElementById("copyNotice");
 const generatePromptBtn = document.getElementById("generatePromptBtn");
@@ -10,7 +15,6 @@ const copyPromptBtn = document.getElementById("copyPromptBtn");
 const openChatGptBtn = document.getElementById("openChatGptBtn");
 const generatePdfBtn = document.getElementById("generatePdfBtn");
 
-// Prompt skeleton used for ChatGPT.
 const PROMPT_TEMPLATE = `Explain the following study material in a very detailed, structured, and easy-to-understand way.
 
 If the content contains multiple pages, read all pages together as one continuous topic before answering.
@@ -38,8 +42,10 @@ Study material:
 
 let noticeTimeoutId;
 const DEFAULT_LOADER_TEXT = "Scanning uploaded pages and extracting text...";
+const APP_STATE_STORAGE_KEY = "explainToPdfStateV1";
+const savedResponses = [];
+let editingResponseIndex = null;
 
-// UI helpers.
 function showLoader(isVisible, message = DEFAULT_LOADER_TEXT) {
   ocrLoader.textContent = message;
   ocrLoader.classList.toggle("hidden", !isVisible);
@@ -57,11 +63,51 @@ function showCopyNotice() {
   }, 2000);
 }
 
-function updateDetectedFromDirectText() {
-  detectedText.value = directText.value;
+function saveAppState() {
+  const appState = {
+    directText: directText.value,
+    detectedText: detectedText.value,
+    promptOutput: promptOutput.value,
+    aiResponse: aiResponse.value,
+    savedResponses
+  };
+
+  try {
+    localStorage.setItem(APP_STATE_STORAGE_KEY, JSON.stringify(appState));
+  } catch (error) {
+    console.error("Could not save app state.", error);
+  }
 }
 
-// OCR: extract topic text from uploaded image in-browser.
+function loadAppState() {
+  try {
+    const raw = localStorage.getItem(APP_STATE_STORAGE_KEY);
+
+    if (!raw) {
+      return;
+    }
+
+    const parsed = JSON.parse(raw);
+    directText.value = typeof parsed.directText === "string" ? parsed.directText : "";
+    detectedText.value = typeof parsed.detectedText === "string" ? parsed.detectedText : "";
+    promptOutput.value = typeof parsed.promptOutput === "string" ? parsed.promptOutput : "";
+    aiResponse.value = typeof parsed.aiResponse === "string" ? parsed.aiResponse : "";
+
+    const storedResponses = Array.isArray(parsed.savedResponses)
+      ? parsed.savedResponses.filter((item) => typeof item === "string" && item.trim().length > 0)
+      : [];
+
+    savedResponses.splice(0, savedResponses.length, ...storedResponses);
+  } catch (error) {
+    console.error("Could not load app state.", error);
+  }
+}
+
+function updateDetectedFromDirectText() {
+  detectedText.value = directText.value;
+  saveAppState();
+}
+
 function buildCombinedOcrText(pageTexts) {
   if (pageTexts.length === 1) {
     return pageTexts[0].text;
@@ -112,11 +158,13 @@ async function extractTextFromImages(files) {
     if (pageTexts.length === 0) {
       alert("No readable text was found in the selected image files.");
       detectedText.value = "";
+      saveAppState();
       return;
     }
 
     detectedText.value = buildCombinedOcrText(pageTexts);
     directText.value = "";
+    saveAppState();
   } catch (error) {
     alert("OCR failed. Please try different image files or paste text manually.");
     console.error(error);
@@ -134,9 +182,9 @@ function generatePrompt() {
   }
 
   promptOutput.value = PROMPT_TEMPLATE.replace("{{TOPIC_TEXT}}", topicText);
+  saveAppState();
 }
 
-// Copy generated prompt for quick paste into ChatGPT.
 async function copyPrompt() {
   const promptText = promptOutput.value.trim();
 
@@ -158,7 +206,170 @@ function openChatGPT() {
   window.open("https://chatgpt.com", "_blank", "noopener,noreferrer");
 }
 
-// PDF formatting helpers.
+function closeMenu() {
+  menuDropdown.classList.add("hidden");
+  menuToggleBtn.setAttribute("aria-expanded", "false");
+}
+
+function toggleMenu() {
+  const isHidden = menuDropdown.classList.contains("hidden");
+  menuDropdown.classList.toggle("hidden", !isHidden);
+  menuToggleBtn.setAttribute("aria-expanded", String(isHidden));
+}
+
+function setEditingMode(index) {
+  editingResponseIndex = Number.isInteger(index) ? index : null;
+  saveResponseBtn.textContent = editingResponseIndex === null ? "Save Response" : "Update Response";
+}
+
+function getIconSvg(type) {
+  if (type === "up") {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-.32 0-.63.13-.85.35L3.35 10.15a1.2 1.2 0 0 0 .85 2.05H8.5V20a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-7.8h4.3a1.2 1.2 0 0 0 .85-2.05l-7.8-7.8A1.2 1.2 0 0 0 12 2Z"/></svg>';
+  }
+
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 2a2 2 0 0 0-2 2v7.8H4.2a1.2 1.2 0 0 0-.85 2.05l7.8 7.8a1.2 1.2 0 0 0 1.7 0l7.8-7.8a1.2 1.2 0 0 0-.85-2.05h-4.3V4a2 2 0 0 0-2-2h-3Z"/></svg>';
+}
+
+function renderSavedResponses() {
+  if (savedResponses.length === 0) {
+    savedResponsesList.innerHTML = "";
+    return;
+  }
+
+  savedResponsesList.innerHTML = savedResponses
+    .map((response, index) => {
+      const escapedText = response
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+      return `
+        <div class="saved-response-item">
+          <div class="saved-response-text" title="${escapedText}">${escapedText}</div>
+          <div class="saved-response-controls">
+            <button class="btn icon-btn" data-action="up" data-index="${index}" title="Move up" ${index === 0 ? "disabled" : ""}>${getIconSvg("up")}</button>
+            <button class="btn icon-btn" data-action="down" data-index="${index}" title="Move down" ${index === savedResponses.length - 1 ? "disabled" : ""}>${getIconSvg("down")}</button>
+            <button class="btn icon-btn" data-action="edit" data-index="${index}" title="Edit">&#9998;</button>
+            <button class="btn icon-btn" data-action="delete" data-index="${index}" title="Delete">&#10005;</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function saveResponse() {
+  const responseText = aiResponse.value.trim();
+
+  if (!responseText) {
+    alert("Please paste a response first before saving.");
+    return;
+  }
+
+  if (editingResponseIndex === null) {
+    savedResponses.push(responseText);
+  } else {
+    savedResponses[editingResponseIndex] = responseText;
+  }
+
+  aiResponse.value = "";
+  setEditingMode(null);
+  renderSavedResponses();
+  saveAppState();
+}
+
+function handleSavedResponseAction(event) {
+  const actionButton = event.target.closest("button[data-action]");
+
+  if (!actionButton) {
+    return;
+  }
+
+  const index = Number(actionButton.dataset.index);
+  const action = actionButton.dataset.action;
+
+  if (!Number.isInteger(index) || index < 0 || index >= savedResponses.length) {
+    return;
+  }
+
+  if (action === "edit") {
+    aiResponse.value = savedResponses[index];
+    aiResponse.focus();
+    setEditingMode(index);
+    saveAppState();
+    return;
+  }
+
+  if (action === "delete") {
+    savedResponses.splice(index, 1);
+
+    if (editingResponseIndex === index) {
+      setEditingMode(null);
+    } else if (editingResponseIndex !== null && index < editingResponseIndex) {
+      setEditingMode(editingResponseIndex - 1);
+    }
+
+    renderSavedResponses();
+    saveAppState();
+    return;
+  }
+
+  if (action === "up" && index > 0) {
+    [savedResponses[index - 1], savedResponses[index]] = [savedResponses[index], savedResponses[index - 1]];
+
+    if (editingResponseIndex === index) {
+      setEditingMode(index - 1);
+    } else if (editingResponseIndex === index - 1) {
+      setEditingMode(index);
+    }
+
+    renderSavedResponses();
+    saveAppState();
+    return;
+  }
+
+  if (action === "down" && index < savedResponses.length - 1) {
+    [savedResponses[index], savedResponses[index + 1]] = [savedResponses[index + 1], savedResponses[index]];
+
+    if (editingResponseIndex === index) {
+      setEditingMode(index + 1);
+    } else if (editingResponseIndex === index + 1) {
+      setEditingMode(index);
+    }
+
+    renderSavedResponses();
+    saveAppState();
+  }
+}
+
+function resetAllData() {
+  const shouldReset = window.confirm("Do you want to delete all saved data and reset the app?");
+
+  if (!shouldReset) {
+    return;
+  }
+
+  directText.value = "";
+  detectedText.value = "";
+  promptOutput.value = "";
+  aiResponse.value = "";
+  imageInput.value = "";
+  savedResponses.splice(0, savedResponses.length);
+
+  setEditingMode(null);
+  renderSavedResponses();
+
+  try {
+    localStorage.removeItem(APP_STATE_STORAGE_KEY);
+  } catch (error) {
+    console.error("Could not clear app state.", error);
+  }
+
+  closeMenu();
+}
+
 function normalizeLines(text) {
   return text
     .split("\n")
@@ -192,10 +403,11 @@ function isSectionHeading(line) {
 }
 
 function generatePdf() {
-  const responseText = aiResponse.value.trim();
+  const currentResponseText = aiResponse.value.trim();
+  const responseText = savedResponses.length > 0 ? savedResponses.join("\n\n") : currentResponseText;
 
   if (!responseText) {
-    alert("Please paste the ChatGPT response before generating the PDF.");
+    alert("Please paste a response, or save at least one response, before generating the PDF.");
     return;
   }
 
@@ -261,7 +473,10 @@ function generatePdf() {
   doc.save("explained_topic.pdf");
 }
 
-// Event wiring.
+loadAppState();
+setEditingMode(null);
+renderSavedResponses();
+
 imageInput.addEventListener("change", (event) => {
   const files = event.target.files;
 
@@ -273,7 +488,22 @@ imageInput.addEventListener("change", (event) => {
 });
 
 directText.addEventListener("input", updateDetectedFromDirectText);
+detectedText.addEventListener("input", saveAppState);
+promptOutput.addEventListener("input", saveAppState);
+aiResponse.addEventListener("input", saveAppState);
 generatePromptBtn.addEventListener("click", generatePrompt);
 copyPromptBtn.addEventListener("click", copyPrompt);
 openChatGptBtn.addEventListener("click", openChatGPT);
+saveResponseBtn.addEventListener("click", saveResponse);
+savedResponsesList.addEventListener("click", handleSavedResponseAction);
 generatePdfBtn.addEventListener("click", generatePdf);
+menuToggleBtn.addEventListener("click", (event) => {
+  event.stopPropagation();
+  toggleMenu();
+});
+resetAllBtn.addEventListener("click", resetAllData);
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".top-menu")) {
+    closeMenu();
+  }
+});

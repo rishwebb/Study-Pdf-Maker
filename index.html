@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div class="top-menu">
+      <button id="menuToggleBtn" class="btn menu-toggle" aria-label="Open menu" aria-expanded="false">⋯</button>
+      <div id="menuDropdown" class="menu-dropdown hidden" role="menu">
+        <button id="resetAllBtn" class="menu-item" role="menuitem">Reset</button>
+      </div>
+    </div>
+
     <main class="container">
       <section class="card">
         <h1>ExplainToPDF</h1>
@@ -75,11 +82,13 @@
           class="large-textarea"
           placeholder="Paste the ChatGPT explanation here..."
         ></textarea>
-      </section>
 
-      <section class="card">
-        <h2>PDF Generator</h2>
-        <button id="generatePdfBtn" class="btn primary">Generate PDF</button>
+        <div class="button-row response-actions">
+          <button id="saveResponseBtn" class="btn">Save Response</button>
+          <button id="generatePdfBtn" class="btn primary">Generate PDF</button>
+        </div>
+
+        <div id="savedResponsesList" class="saved-responses-list"></div>
       </section>
     </main>
 
