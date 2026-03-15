@@ -274,6 +274,10 @@ function saveResponse() {
     savedResponses[editingResponseIndex] = responseText;
   }
 
+  directText.value = "";
+  detectedText.value = "";
+  promptOutput.value = "";
+  imageInput.value = "";
   aiResponse.value = "";
   setEditingMode(null);
   renderSavedResponses();
