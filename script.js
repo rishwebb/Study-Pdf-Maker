@@ -214,9 +214,10 @@ function openChatGPT() {
 
   try {
     if (typeof medianBridge?.open === "function") {
-      // In a Median app, hand off the official web URL to the native layer so
-      // the OS can decide whether to open the browser or the ChatGPT app link.
-      medianBridge.open(chatGptUrl, "external");
+      // Use Median's in-app browser for a single deterministic open. Using
+      // "external" lets Android App Links hand chatgpt.com to the ChatGPT app
+      // while also creating a browser task, which causes the double-open effect.
+      medianBridge.open(chatGptUrl, "appbrowser");
       return;
     }
 
