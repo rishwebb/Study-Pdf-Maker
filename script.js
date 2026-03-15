@@ -209,11 +209,20 @@ function openChatGPT() {
   }
 
   isOpeningChatGpt = true;
-  window.location.assign("https://chatgpt.com");
+  const userAgent = navigator.userAgent || "";
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(userAgent);
+
+  if (!isMobile) {
+    alert("This button is set to open the ChatGPT mobile app only.");
+    isOpeningChatGpt = false;
+    return;
+  }
+
+  window.location.href = "chatgpt://";
 
   setTimeout(() => {
     isOpeningChatGpt = false;
-  }, 1500);
+  }, 1800);
 }
 
 function closeMenu() {
