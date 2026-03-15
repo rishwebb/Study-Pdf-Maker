@@ -211,18 +211,30 @@ function openChatGPT() {
   isOpeningChatGpt = true;
   const userAgent = navigator.userAgent || "";
   const isMobile = /Android|iPhone|iPad|iPod/i.test(userAgent);
+  const medianBridge = window.median?.window;
 
-  if (!isMobile) {
-    alert("This button is set to open the ChatGPT mobile app only.");
-    isOpeningChatGpt = false;
-    return;
+  try {
+    if (typeof medianBridge?.open === "function") {
+      // In a Median app, hand off the deep link to the native layer instead of
+      // navigating the webview directly. This avoids in-app/browser double opens.
+      medianBridge.open("chatgpt://", "external");
+      return;
+    }
+
+    if (!isMobile) {
+      window.open("https://chatgpt.com", "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    window.location.href = "chatgpt://";
+  } catch (error) {
+    console.error("Could not open ChatGPT.", error);
+    alert("Could not open ChatGPT from this device.");
+  } finally {
+    setTimeout(() => {
+      isOpeningChatGpt = false;
+    }, 1800);
   }
-
-  window.location.href = "chatgpt://";
-
-  setTimeout(() => {
-    isOpeningChatGpt = false;
-  }, 1800);
 }
 
 function closeMenu() {
