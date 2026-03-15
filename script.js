@@ -203,7 +203,8 @@ async function copyPrompt() {
   }
 }
 
-function openChatGPT() {
+function openChatGPT(event) {
+  if (event) event.preventDefault();
   if (isOpeningChatGpt) {
     return;
   }
