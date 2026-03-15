@@ -115,6 +115,7 @@ body {
   height: 1px;
   background: linear-gradient(90deg, rgba(45, 97, 245, 0.3), transparent);
   pointer-events: none;
+  display: none;
 }
 
 h1,
